@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Resource Link Hub</title>
+  <style>
+    /* ── Reset & Base ──────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0f1117;
+      --surface:   #1a1d27;
+      --surface2:  #22263a;
+      --border:    #2e3350;
+      --accent:    #6c63ff;
+      --accent-h:  #8b85ff;
+      --danger:    #ef4565;
+      --danger-h:  #ff6b87;
+      --success:   #2ecc71;
+      --text:      #e2e8f0;
+      --text-muted:#8892a4;
+      --radius:    10px;
+      --shadow:    0 4px 24px rgba(0,0,0,.45);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      padding: 2rem 1rem 4rem;
+    }
+
+    /* ── Layout ────────────────────────────────────────────────────────────── */
+    .container { max-width: 860px; margin: 0 auto; }
+
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+    header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.5px;
+    }
+    header p {
+      color: var(--text-muted);
+      margin-top: .5rem;
+      font-size: .95rem;
+    }
+
+    /* ── Card ──────────────────────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.6rem;
+      box-shadow: var(--shadow);
+      margin-bottom: 1.5rem;
+    }
+    .card h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 1.2rem;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+    }
+    .card h2 .icon { font-size: 1.3rem; }
+
+    /* ── Form ──────────────────────────────────────────────────────────────── */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .9rem;
+    }
+    .form-grid .full { grid-column: 1 / -1; }
+
+    label {
+      display: block;
+      font-size: .8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      margin-bottom: .35rem;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: .95rem;
+      padding: .6rem .9rem;
+      transition: border-color .2s, box-shadow .2s;
+      outline: none;
+      resize: vertical;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(108,99,255,.2);
+    }
+    input::placeholder, textarea::placeholder { color: var(--text-muted); }
+
+    /* ── Buttons ───────────────────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .65rem 1.4rem;
+      border-radius: 6px;
+      border: none;
+      font-size: .9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .18s, transform .12s, box-shadow .18s;
+    }
+    .btn:active { transform: scale(.97); }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+    .btn-primary:hover { background: var(--accent-h); box-shadow: 0 0 14px rgba(108,99,255,.5); }
+
+    .btn-danger {
+      background: transparent;
+      color: var(--danger);
+      border: 1px solid var(--danger);
+      padding: .35rem .8rem;
+      font-size: .82rem;
+      border-radius: 5px;
+    }
+    .btn-danger:hover { background: var(--danger); color: #fff; }
+
+    .btn-refresh {
+      background: var(--surface2);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+    .btn-refresh:hover { color: var(--text); border-color: var(--accent); }
+
+    /* ── Toast Notification ────────────────────────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      padding: .85rem 1.4rem;
+      border-radius: var(--radius);
+      font-size: .9rem;
+      font-weight: 600;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity .3s, transform .3s;
+      z-index: 999;
+      pointer-events: none;
+      max-width: 340px;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+    #toast.success { background: #163a26; border: 1px solid var(--success); color: var(--success); }
+    #toast.error   { background: #2d1522; border: 1px solid var(--danger);  color: var(--danger); }
+
+    /* ── Toolbar ───────────────────────────────────────────────────────────── */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: .8rem;
+      margin-bottom: 1rem;
+    }
+    .toolbar h2 { margin: 0; }
+
+    #search {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: .9rem;
+      padding: .5rem .9rem;
+      width: 220px;
+      outline: none;
+      transition: border-color .2s;
+    }
+    #search:focus { border-color: var(--accent); }
+
+    /* ── Links Grid ────────────────────────────────────────────────────────── */
+    #links-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1rem;
+    }
+
+    .link-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+      transition: border-color .2s, transform .2s;
+      animation: fadeIn .3s ease;
+    }
+    .link-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .link-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: .5rem;
+    }
+
+    .link-title {
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--text);
+      word-break: break-word;
+    }
+
+    .badge {
+      flex-shrink: 0;
+      background: rgba(108,99,255,.18);
+      color: var(--accent-h);
+      border-radius: 20px;
+      padding: .15rem .65rem;
+      font-size: .72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      white-space: nowrap;
+    }
+
+    .link-desc {
+      font-size: .85rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      flex: 1;
+    }
+
+    .link-url {
+      font-size: .82rem;
+      word-break: break-all;
+    }
+    .link-url a {
+      color: var(--accent-h);
+      text-decoration: none;
+      transition: color .15s;
+    }
+    .link-url a:hover { color: #fff; text-decoration: underline; }
+
+    .link-actions { display: flex; justify-content: flex-end; }
+
+    /* ── Empty / Loading States ────────────────────────────────────────────── */
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--text-muted);
+    }
+    .empty-state .icon { font-size: 3rem; display: block; margin-bottom: 1rem; }
+
+    .spinner {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 2rem;
+    }
+    .spinner::after {
+      content: '';
+      display: inline-block;
+      width: 36px; height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Responsive ────────────────────────────────────────────────────────── */
+    @media (max-width: 600px) {
+      .form-grid { grid-template-columns: 1fr; }
+      #search { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <header>
+    <h1>🔗 Resource Link Hub</h1>
+    <p>Repositori Tautan Modul Praktikum — tambah, cari, dan hapus tautan dengan mudah.</p>
+  </header>
+
+  <!-- Add Link Form -->
+  <div class="card">
+    <h2><span class="icon">➕</span> Tambah Tautan Baru</h2>
+    <form id="link-form" novalidate>
+      <div class="form-grid">
+        <div>
+          <label for="title">Judul</label>
+          <input id="title" type="text" placeholder="Contoh: Panduan Docker Compose" required />
+        </div>
+        <div>
+          <label for="category">Kategori</label>
+          <input id="category" type="text" placeholder="Contoh: DevOps, Jaringan, AI" required />
+        </div>
+        <div class="full">
+          <label for="url">URL</label>
+          <input id="url" type="url" placeholder="https://docs.example.com/..." required />
+        </div>
+        <div class="full">
+          <label for="description">Deskripsi</label>
+          <textarea id="description" rows="3" placeholder="Jelaskan isi tautan ini secara singkat..." required></textarea>
+        </div>
+      </div>
+      <div style="margin-top:1.1rem; display:flex; justify-content:flex-end;">
+        <button type="submit" class="btn btn-primary">
+          <span>💾</span> Simpan Tautan
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Links List -->
+  <div class="card">
+    <div class="toolbar">
+      <h2><span class="icon">📚</span> Daftar Tautan</h2>
+      <div style="display:flex;gap:.7rem;align-items:center;flex-wrap:wrap;">
+        <input id="search" type="text" placeholder="🔍  Cari judul / kategori..." />
+        <button class="btn btn-refresh" onclick="loadLinks()" title="Muat ulang">↺ Refresh</button>
+      </div>
+    </div>
+    <div id="links-container">
+      <div class="spinner"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+  // ── State ────────────────────────────────────────────────────────────────
+  let allLinks = [];
+
+  // ── Toast ────────────────────────────────────────────────────────────────
+  let toastTimer;
+  function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.className = `show ${type}`;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { toast.className = ''; }, 3200);
+  }
+
+  // ── Render ───────────────────────────────────────────────────────────────
+  function renderLinks(links) {
+    const container = document.getElementById('links-container');
+    container.innerHTML = '';
+
+    if (links.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <span class="icon">📭</span>
+          <strong>Belum ada tautan</strong>
+          <p style="margin-top:.5rem;font-size:.9rem;">Tambahkan tautan pertama menggunakan form di atas.</p>
+        </div>`;
+      return;
+    }
+
+    links.forEach(({ link, originalIndex }) => {
+      const card = document.createElement('div');
+      card.className = 'link-card';
+      card.innerHTML = `
+        <div class="link-card-header">
+          <span class="link-title">${escHtml(link.title)}</span>
+          <span class="badge">${escHtml(link.category)}</span>
+        </div>
+        <p class="link-desc">${escHtml(link.description)}</p>
+        <div class="link-url">🌐 <a href="${escHtml(link.url)}" target="_blank" rel="noopener noreferrer">${escHtml(link.url)}</a></div>
+        <div class="link-actions">
+          <button class="btn btn-danger" onclick="deleteLink(${originalIndex})">🗑 Hapus</button>
+        </div>`;
+      container.appendChild(card);
+    });
+  }
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+      .replace(/'/g,'&#39;');
+  }
+
+  // ── Search / Filter ──────────────────────────────────────────────────────
+  function filterLinks(query) {
+    const q = query.toLowerCase();
+    const filtered = allLinks
+      .map((link, originalIndex) => ({ link, originalIndex }))
+      .filter(({ link }) =>
+        link.title.toLowerCase().includes(q) ||
+        link.category.toLowerCase().includes(q) ||
+        link.description.toLowerCase().includes(q)
+      );
+    renderLinks(filtered);
+  }
+
+  document.getElementById('search').addEventListener('input', (e) => {
+    filterLinks(e.target.value.trim());
+  });
+
+  // ── Load Links ───────────────────────────────────────────────────────────
+  async function loadLinks() {
+    document.getElementById('links-container').innerHTML = '<div class="spinner"></div>';
+    document.getElementById('search').value = '';
+    try {
+      const res = await fetch('/links');
+      if (!res.ok) throw new Error(`Server error: ${res.status}`);
+      allLinks = await res.json();
+      renderLinks(allLinks.map((link, originalIndex) => ({ link, originalIndex })));
+    } catch (err) {
+      document.getElementById('links-container').innerHTML = `
+        <div class="empty-state">
+          <span class="icon">⚠️</span>
+          <strong>Gagal memuat data</strong>
+          <p style="margin-top:.5rem;font-size:.9rem;">${err.message}</p>
+        </div>`;
+      showToast('Gagal memuat tautan: ' + err.message, 'error');
+    }
+  }
+
+  // ── Add Link ─────────────────────────────────────────────────────────────
+  document.getElementById('link-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const title       = document.getElementById('title').value.trim();
+    const category    = document.getElementById('category').value.trim();
+    const url         = document.getElementById('url').value.trim();
+    const description = document.getElementById('description').value.trim();
+
+    if (!title || !category || !url || !description) {
+      showToast('Semua field wajib diisi!', 'error');
+      return;
+    }
+
+    const submitBtn = e.target.querySelector('[type=submit]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = '⏳ Menyimpan...';
+
+    try {
+      const res = await fetch('/links', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, category, url, description }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        showToast('Error: ' + (data.error || res.status), 'error');
+        return;
+      }
+
+      showToast('✅ Tautan berhasil ditambahkan!', 'success');
+      e.target.reset();
+      await loadLinks();
+    } catch (err) {
+      showToast('Gagal menambah tautan: ' + err.message, 'error');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<span>💾</span> Simpan Tautan';
+    }
+  });
+
+  // ── Delete Link ──────────────────────────────────────────────────────────
+  async function deleteLink(index) {
+    if (!confirm(`Hapus tautan ini? (index: ${index})`)) return;
+    try {
+      const res = await fetch(`/links?index=${index}`, { method: 'DELETE' });
+      const data = await res.json();
+
+      if (!res.ok) {
+        showToast('Error: ' + (data.error || res.status), 'error');
+        return;
+      }
+
+      showToast('🗑 Tautan berhasil dihapus!', 'success');
+      await loadLinks();
+    } catch (err) {
+      showToast('Gagal menghapus tautan: ' + err.message, 'error');
+    }
+  }
+
+  // ── Init ─────────────────────────────────────────────────────────────────
+  loadLinks();
+</script>
+</body>
+</html>
+

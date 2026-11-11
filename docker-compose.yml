@@ -1,0 +1,57 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Resource Link Hub - Docker Compose
+# Services: backend (Python API) + frontend (Nginx)
+# Network:  app-net (bridge, external)
+# Volume:   link-hub-data (persistent JSON store, external)
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── Backend: Pure Python REST API ─────────────────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: resource-link-backend
+    ports:
+      - "5000:5000"
+    volumes:
+      - link-hub-data:/var/lib/backend_data
+    networks:
+      - app-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://localhost:5000/links')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 3s
+
+  # ── Frontend: Nginx Static + Reverse Proxy ────────────────────────────────
+  frontend:
+    image: nginx:1.27-alpine
+    container_name: resource-link-frontend
+    ports:
+      - "8081:80"
+    volumes:
+      # HOST_PROJECT_PATH diset di environment Jenkins (atau .env lokal).
+      # Fallback ke path relatif "." saat dijalankan manual dari folder proyek.
+      - "${HOST_PROJECT_PATH:-.}/index.html:/usr/share/nginx/html/index.html:ro"
+      - "${HOST_PROJECT_PATH:-.}/nginx.conf:/etc/nginx/conf.d/default.conf:ro"
+    networks:
+      - app-net
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+# ── Named Volume ─────────────────────────────────────────────────────────────
+# external: true → pakai volume yang sudah ada, hindari konflik project name
+volumes:
+  link-hub-data:
+    external: true
+
+# ── Bridge Network ────────────────────────────────────────────────────────────
+# external: true → pakai network yang sudah ada, hindari konflik project name
+networks:
+  app-net:
+    external: true

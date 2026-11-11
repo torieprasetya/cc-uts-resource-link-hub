@@ -1,0 +1,9 @@
+# Dockerfile.frontend — Nginx reverse proxy for Resource Link Hub
+FROM nginx:1.27-alpine
+
+# Remove default config
+RUN rm /etc/nginx/conf.d/default.conf
+
+# Config dan HTML akan di-mount via Bind Mount (lihat docker-compose.yml)
+EXPOSE 80
+
