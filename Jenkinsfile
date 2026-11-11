@@ -3,8 +3,6 @@ pipeline {
 
     environment {
         // Path absolut folder proyek di Windows Host.
-        // Dibutuhkan agar Bind Mount Nginx (index.html & nginx.conf) berhasil
-        // saat docker compose dieksekusi dari dalam kontainer Jenkins.
         HOST_PROJECT_PATH = 'C:/cloud-project/cc-uts-resource-link-hub-main'
     }
 
@@ -35,7 +33,7 @@ pipeline {
                     echo "      ✅ app.py passed"
 
                     echo "[2/2] Docker Compose config validation"
-                    docker compose config -q
+                    docker-compose config
                     echo "      ✅ docker-compose.yml passed"
                 '''
             }
@@ -45,7 +43,7 @@ pipeline {
         stage('Build Image') {
             steps {
                 echo '🐳 Building Backend Docker Image...'
-                sh 'docker compose build --no-cache backend'
+                sh 'docker-compose build --no-cache backend'
                 echo '✅ Backend image built successfully'
             }
         }
@@ -59,7 +57,7 @@ pipeline {
                     docker rm -f resource-link-frontend resource-link-backend 2>/dev/null || true
 
                     # Deploy semua service
-                    docker compose up -d --remove-orphans
+                    docker-compose up -d --remove-orphans
                     echo "✅ Services deployed successfully"
                 '''
             }
@@ -76,7 +74,7 @@ pipeline {
                     docker network connect app-net jenkins-server 2>/dev/null || true
 
                     echo "--- Container Status ---"
-                    docker compose ps
+                    docker-compose ps
 
                     echo "--- Checking Backend API (/links) ---"
                     curl -sf http://resource-link-backend:5000/links \
@@ -98,7 +96,7 @@ pipeline {
     post {
         always {
             echo '📋 Final container status:'
-            sh 'docker compose ps || true'
+            sh 'docker-compose ps || true'
         }
         success {
             echo '🎉 Pipeline SUCCEEDED! Application is live at http://localhost:8081'
